@@ -6,7 +6,7 @@ import threading
 import telnetlib
 import socket
 import random
-
+from paho.mqtt.enums import CallbackAPIVersion
 from threading import Thread
 from queue import Queue
 
@@ -262,7 +262,7 @@ def ezville_loop(config):
   
 
     # MQTT 통신 연결 Callback
-    def on_connect(client, userdata, flags, rc):
+    def on_connect(client, userdata, flags, rc, properties):
         if rc == 0:
             log('[INFO] MQTT Broker 연결 성공')
             # Socket인 경우 MQTT 장치의 명령 관련과 MQTT Status (Birth/Last Will Testament) Topic만 구독
@@ -275,12 +275,14 @@ def ezville_loop(config):
             else:
                 client.subscribe([(HA_TOPIC + '/#', 0), (EW11_TOPIC + '/recv', 0), (EW11_TOPIC + '/send', 1), ('homeassistant/status', 0)])
         else:
-            errcode = {1: 'Connection refused - incorrect protocol version',
-                       2: 'Connection refused - invalid client identifier',
-                       3: 'Connection refused - server unavailable',
-                       4: 'Connection refused - bad username or password',
-                       5: 'Connection refused - not authorised'}
-            log(errcode[rc])
+            reason_codes = {
+                mqtt.ReasonCodes(1): 'Connection refused - incorrect protocol version',
+                mqtt.ReasonCodes(2): 'Connection refused - invalid client identifier',
+                mqtt.ReasonCodes(3): 'Connection refused - server unavailable',
+                mqtt.ReasonCodes(4): 'Connection refused - bad username or password',
+                mqtt.ReasonCodes(5): 'Connection refused - not authorised'
+            }
+            log(reason_codes.get(rc, 'Connection failed with unknown reason code'))
          
         
     # MQTT 메시지 Callback
@@ -309,10 +311,11 @@ def ezville_loop(config):
  
 
     # MQTT 통신 연결 해제 Callback
-    def on_disconnect(client, userdata, rc):
+    def on_disconnect(client, userdata, flags, rc, properties):
         log('INFO: MQTT 연결 해제')
+        if rc != 0:
+            log(f'[ERROR] Disconnection reason: {rc}')
         pass
-
 
     # MQTT message를 분류하여 처리
     async def process_message():
@@ -1017,8 +1020,7 @@ def ezville_loop(config):
 
         
     # MQTT 통신
-    from paho.mqtt.enums import CallbackAPIVersion
-    mqtt_client = mqtt.Client(CallbackAPIVersion.VERSION1, 'mqtt-ezville')
+    mqtt_client = mqtt.Client(CallbackAPIVersion.VERSION2, 'mqtt-ezville')
     mqtt_client.username_pw_set(config['mqtt_id'], config['mqtt_password'])
     mqtt_client.on_connect = on_connect
     mqtt_client.on_disconnect = on_disconnect
