@@ -648,7 +648,9 @@ def ezville_loop(config):
 
                                             # BIT0: 대기전력 On/Off, BIT1: 자동모드 On/Off
                                     current_energy = int(packet[10:18])
+                                    log('[current_energy] receved: {}'.format(current_energy))
                                     total_energy = round(int(packet[18:26]) / 10, 1)
+                                    log('[total_energy] receved: {}'.format(total_energy))
 
                                     await update_state(
                                         name, "current_energy", rid, id, current_energy
