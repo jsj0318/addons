@@ -144,7 +144,7 @@ DISCOVERY_PAYLOAD = {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
             'name': 'ezville_energy_{:0>2d}_{:0>2d}_powermeter',
-            'stat_t': '~/current/state',
+            'stat_t': '~/current_energy/state',
             'unit_of_meas': 'W',
             'icon': 'mdi:flash'
         },
@@ -152,7 +152,7 @@ DISCOVERY_PAYLOAD = {
             '_intg': 'sensor',
             '~': 'ezville/energy_total_{:0>2d}_{:0>2d}',
             'name': 'ezville_energy_total_{:0>2d}_{:0>2d}_powermeter',
-            'stat_t': '~/current/state',
+            'stat_t': '~/total_energy/state',
             'unit_of_meas': 'kWh',
             'icon': 'mdi:lightning-bolt'
         }
