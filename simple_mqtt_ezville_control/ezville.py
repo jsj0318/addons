@@ -144,15 +144,15 @@ DISCOVERY_PAYLOAD = {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
             'name': 'ezville_energy_{:0>2d}_{:0>2d}_powermeter',
-            'stat_t': '~/current_energy/state',
+            'stat_t': '~/current-energy/state',
             'unit_of_meas': 'W',
             'icon': 'mdi:flash'
         },
         {
             '_intg': 'sensor',
-            '~': 'ezville/energy_total_{:0>2d}_{:0>2d}',
-            'name': 'ezville_energy_total_{:0>2d}_{:0>2d}_powermeter',
-            'stat_t': '~/total_energy/state',
+            '~': 'ezville/energy_{:0>2d}_{:0>2d}',
+            'name': 'ezville_energy-total_{:0>2d}_{:0>2d}_powermeter',
+            'stat_t': '~/energy-total/state',
             'unit_of_meas': 'kWh',
             'icon': 'mdi:lightning-bolt'
         }
@@ -648,15 +648,13 @@ def ezville_loop(config):
 
                                             # BIT0: 대기전력 On/Off, BIT1: 자동모드 On/Off
                                     current_energy = int(packet[10:18])
-                                    log('[current_energy] receved: {}'.format(current_energy))
-                                    total_energy = round(int(packet[18:26]) / 10, 1)
-                                    log('[total_energy] receved: {}'.format(total_energy))
+                                    energy_total = round(int(packet[18:26]) / 10, 1)
 
                                     await update_state(
-                                        name, "current_energy", rid, id, current_energy
+                                        name, "current-energy", rid, id, current_energy
                                     )
                                     await update_state(
-                                        name, "total_energy", rid, id, total_energy
+                                        name, "energy-total", rid, id, energy_total
                                     )
                                     # 직전 처리 State 패킷은 저장
                                     MSG_CACHE[packet[0:10]] = packet[10:]
@@ -888,6 +886,18 @@ def ezville_loop(config):
                     if debug:
                         log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}'.format(sendcmd, recvcmd,
                                                                                               statcmd))
+                elif device == 'energy':
+                    sendcmd = checksum('F730030100C5F0')
+                    recvcmd = 'F7' + RS485_DEVICE[device]['state']['id'] + '0' + str(idx) + \
+                              RS485_DEVICE[device]['state']['cmd'] + '08'
+                    statcmd = [key, value]
+
+                    await CMD_QUEUE.put({'sendcmd': sendcmd, 'recvcmd': recvcmd, 'statcmd': statcmd})
+
+                    if debug:
+                        log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}'.format(sendcmd, recvcmd,
+                                                                                              statcmd))
+
 
     # HA에서 전달된 명령을 EW11 패킷으로 전송
     async def send_to_ew11(send_data):
