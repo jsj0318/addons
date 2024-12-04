@@ -63,7 +63,7 @@ DISCOVERY_PAYLOAD = {
         {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
-            'name': 'ezville_energy_{:0>2d}_{:0>2d}_current',
+            'name': 'ezville_energy_{:0>2d}_{:0>2d}',
             'stat_t': '~/current/state',
             'unit_of_meas': 'W',
             'icon': 'mdi:meter-electric'
@@ -71,7 +71,7 @@ DISCOVERY_PAYLOAD = {
         {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
-            'name': 'ezville_energy_{:0>2d}_{:0>2d}_total',
+            'name': 'ezville_energy-total_{:0>2d}_{:0>2d}',
             'stat_t': '~/total/state',
             'unit_of_meas': 'kWh',
             'icon': 'mdi:meter-electric-outline'
