@@ -448,14 +448,14 @@ def ezville_loop(config):
                                     discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, spc)
                                     if discovery_name not in DISCOVERY_LIST:
                                         DISCOVERY_LIST.append(discovery_name)
+                                        for payload_template in DISCOVERY_PAYLOAD[name]:
+                                            payload = payload_template.copy()
+                                            payload['~'] = payload['~'].format(rid, spc)
+                                            payload['name'] = payload['name'].format(rid, spc)
 
-                                        payload = DISCOVERY_PAYLOAD[name][0].copy()
-                                        payload['~'] = payload['~'].format(rid, spc)
-                                        payload['name'] = payload['name'].format(rid, spc)
-
-                                        # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
-                                        await mqtt_discovery(payload)
-                                        await asyncio.sleep(DISCOVERY_DELAY)
+                                            # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
+                                            await mqtt_discovery(payload)
+                                            await asyncio.sleep(DISCOVERY_DELAY)
                                     current = str(int(packet[10:18]))
                                     log('[INFO] 소비전력: ' + current)
                                     total = str(int(packet[18:26]) / 10)
@@ -478,14 +478,14 @@ def ezville_loop(config):
 
                                     if discovery_name not in DISCOVERY_LIST:
                                         DISCOVERY_LIST.append(discovery_name)
-                                        for payload_template in DISCOVERY_PAYLOAD[name]:
-                                            payload = payload_template.copy()
-                                            payload['~'] = payload['~'].format(rid, src)
-                                            payload['name'] = payload['name'].format(rid, src)
 
-                                            # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
-                                            await mqtt_discovery(payload)
-                                            await asyncio.sleep(DISCOVERY_DELAY)
+                                        payload = DISCOVERY_PAYLOAD[name][0].copy()
+                                        payload['~'] = payload['~'].format(rid, src)
+                                        payload['name'] = payload['name'].format(rid, src)
+
+                                        # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
+                                        await mqtt_discovery(payload)
+                                        await asyncio.sleep(DISCOVERY_DELAY)
 
                                     setT = str(int(packet[16 + 4 * rid:18 + 4 * rid], 16))
                                     curT = str(int(packet[18 + 4 * rid:20 + 4 * rid], 16))
