@@ -78,7 +78,7 @@ DISCOVERY_PAYLOAD = {
             'pl_med_spd': 3,
             'pl_hi_spd': 4,
             'pl_tu_spd': 5,
-            'spds': ["low", "medium", "high", "turbo"],
+            'spds': ["off", "low", "medium", "high", "turbo"],
             'curr_mise_t': '~/curMise/state',
             'curr_co2_t': '~/curCo2/state',
         }
@@ -461,7 +461,25 @@ def ezville_loop(config):
                                         payload['name'] = payload['name'].format(rid, id)
                                         await mqtt_discovery(payload)
                                         await asyncio.sleep(DISCOVERY_DELAY)
-                                    setT =
+                                    onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
+                                    speed_index = int(packet[14:16], 16)
+                                    if speed_index == 2:
+                                        speed = 'low'
+                                    elif speed_index == 3:
+                                        speed = 'medium'
+                                    elif speed_index == 4:
+                                        speed = 'high'
+                                    elif speed_index == 5:
+                                        speed = 'turbo'
+                                    else:
+                                        speed = 'off'
+                                    curMise = int(packet[20:24], 16)
+                                    curCo2 = int(packet[24:28], 16)
+
+                                    await update_state(name, 'power', rid, id, onoff)
+                                    await update_state(name, 'speed', rid, id, speed)
+                                    await update_state(name, 'curMise', rid, id, curMise)
+                                    await update_state(name, 'curCo2', rid, id, curCo2)
 
                             elif name == 'thermostat':
                                 # room 갯수
