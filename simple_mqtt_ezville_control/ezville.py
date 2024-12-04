@@ -16,10 +16,15 @@ RS485_DEVICE = {
     },
     'thermostat': {
         'state': {'id': '36', 'cmd': '81'},
-
         'power': {'id': '36', 'cmd': '43', 'ack': 'C3'},
         'away': {'id': '36', 'cmd': '45', 'ack': 'C5'},
         'target': {'id': '36', 'cmd': '44', 'ack': 'C4'}
+    },
+    'fan': {
+        'state': {'id': '61', 'cmd': '81'},
+        'power': {'id': '61', 'cmd': '41', 'ack': 'C1'},
+        'mode': {'id': '61', 'cmd': '43', 'ack': 'C3'},
+        'speed': {'id': '61', 'cmd': '42', 'ack': 'C2'},
     },
     'plug': {
         'state': {'id': '39', 'cmd': '81'},
@@ -55,6 +60,27 @@ DISCOVERY_PAYLOAD = {
             'opt': True,
             'stat_t': '~/power/state',
             'cmd_t': '~/power/command'
+        }
+    ],
+    'fan': [
+        {
+            '_intg': 'fan',
+            '~': 'ezville/fan_{:0>2d}_{:0>2d}',
+            'name': 'ezville_fan_{:0>2d}_{:0>2d}',
+            'opt': True,
+            'cmd_t': '~/power/command',
+            'stat_t': '~/power/state',
+            'spd_cmd_t': '~/speed/command',
+            'spd_stat_t': '~/speed/state',
+            'pl_on': 1,
+            'pl_off': 0,
+            'pl_lo_spd': 2,
+            'pl_med_spd': 3,
+            'pl_hi_spd': 4,
+            'pl_tu_spd': 5,
+            'spds': ["off", "low", "medium", "high", "turbo"],
+            'curr_mise_t': '~/curMise/state',
+            'curr_co2_t': '~/curCo2/state',
         }
     ],
     'thermostat': [
@@ -421,6 +447,39 @@ def ezville_loop(config):
                                     # 직전 처리 State 패킷은 저장
                                     if STATE_PACKET:
                                         MSG_CACHE[packet[0:10]] = packet[10:]
+                            elif name == 'fan':
+                                # ROOM ID
+                                rid = int(packet[5], 16)
+                                # ROOM의 light 갯수 + 1
+                                slc = int(packet[8:10], 16)
+                                for id in range(1, slc):
+                                    discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, id)
+                                    if discovery_name not in DISCOVERY_LIST:
+                                        DISCOVERY_LIST.append(discovery_name)
+                                        payload = DISCOVERY_PAYLOAD[name][0].copy()
+                                        payload['~'] = payload['~'].format(rid, id)
+                                        payload['name'] = payload['name'].format(rid, id)
+                                        await mqtt_discovery(payload)
+                                        await asyncio.sleep(DISCOVERY_DELAY)
+                                    onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
+                                    speed_index = int(packet[14:16], 16)
+                                    if speed_index == 2:
+                                        speed = 'low'
+                                    elif speed_index == 3:
+                                        speed = 'medium'
+                                    elif speed_index == 4:
+                                        speed = 'high'
+                                    elif speed_index == 5:
+                                        speed = 'turbo'
+                                    else:
+                                        speed = 'off'
+                                    curMise = int(packet[20:24], 16)
+                                    curCo2 = int(packet[24:28], 16)
+
+                                    await update_state(name, 'power', rid, id, onoff)
+                                    await update_state(name, 'speed', rid, id, speed)
+                                    await update_state(name, 'curMise', rid, id, curMise)
+                                    await update_state(name, 'curCo2', rid, id, curCo2)
 
                             elif name == 'thermostat':
                                 # room 갯수
@@ -604,7 +663,7 @@ def ezville_loop(config):
                                 await update_state(name, 'outing', rid, sbc, outingonoff)
 
                                 MSG_CACHE[packet[0:10]] = packet[10:]
-                           
+
                 RESIDUE = ''
                 k = k + packet_length
 
@@ -833,7 +892,7 @@ def ezville_loop(config):
                     if debug:
                         log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}'.format(sendcmd, recvcmd,
                                                                                               statcmd))
-                
+
     # HA에서 전달된 명령을 EW11 패킷으로 전송
     async def send_to_ew11(send_data):
 
