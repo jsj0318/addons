@@ -456,10 +456,14 @@ def ezville_loop(config):
                                         # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
                                         await mqtt_discovery(payload)
                                         await asyncio.sleep(DISCOVERY_DELAY)
-                                    current = int(packet[10:18])
-                                    total = int(packet[18:26]) / 10
+                                    current = str(int(packet[10:18]))
+                                    log('[INFO] 소비전력: ' + current)
+                                    total = str(int(packet[18:26]) / 10)
+                                    log('[INFO] 누진전력: ' + total)
                                     await update_state(name, 'current', rid, spc, current)
                                     await update_state(name, 'total', rid, spc, total)
+                                    MSG_CACHE[packet[0:10]] = packet[10:]
+
                             elif name == 'thermostat':
                                 # room 갯수
                                 rc = int((int(packet[8:10], 16) - 5) / 2)
