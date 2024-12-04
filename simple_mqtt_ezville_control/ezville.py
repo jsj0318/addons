@@ -63,16 +63,18 @@ DISCOVERY_PAYLOAD = {
         {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
-            'name': 'ezville_energy_{:0>2d}_{:0>2d}',
+            'name': 'ezville_energy_{:0>2d}_{:0>2d}_current',
             'stat_t': '~/current/state',
-            'unit_of_meas': 'W'
+            'unit_of_meas': 'W',
+            'icon': 'mdi:meter-electric'
         },
         {
             '_intg': 'sensor',
             '~': 'ezville/energy_{:0>2d}_{:0>2d}',
-            'name': 'ezville_energy_{:0>2d}_{:0>2d}',
-            'stat_t': '~/current/state',
-            'unit_of_meas': 'kWh'
+            'name': 'ezville_energy_{:0>2d}_{:0>2d}_total',
+            'stat_t': '~/total/state',
+            'unit_of_meas': 'kWh',
+            'icon': 'mdi:meter-electric-outline'
         }
     ],
     'thermostat': [
@@ -442,24 +444,22 @@ def ezville_loop(config):
                             elif name == 'energy' and STATE_PACKET:
                                 if STATE_PACKET:
                                     rid = 1
-                                    spc = 2
-                                    for i in range(1, spc + 1):
-                                        discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, i)
-                                        if discovery_name not in DISCOVERY_LIST:
-                                            DISCOVERY_LIST.append(discovery_name)
+                                    spc = 1
+                                    discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, spc)
+                                    if discovery_name not in DISCOVERY_LIST:
+                                        DISCOVERY_LIST.append(discovery_name)
 
-                                            payload = DISCOVERY_PAYLOAD[name][0].copy()
-                                            payload['~'] = payload['~'].format(rid, i)
-                                            payload['name'] = payload['name'].format(rid, i)
+                                        payload = DISCOVERY_PAYLOAD[name][0].copy()
+                                        payload['~'] = payload['~'].format(rid, spc)
+                                        payload['name'] = payload['name'].format(rid, spc)
 
-                                            # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
-                                            await mqtt_discovery(payload)
-                                            await asyncio.sleep(DISCOVERY_DELAY)
+                                        # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
+                                        await mqtt_discovery(payload)
+                                        await asyncio.sleep(DISCOVERY_DELAY)
                                     current = int(packet[10:18])
                                     total = int(packet[18:26]) / 10
-                                    await update_state(name, 'current', rid, 1, current)
-                                    await update_state(name, 'current', rid, 2, total)
-
+                                    await update_state(name, 'current', rid, spc, current)
+                                    await update_state(name, 'total', rid, spc, total)
                             elif name == 'thermostat':
                                 # room 갯수
                                 rc = int((int(packet[8:10], 16) - 5) / 2)
