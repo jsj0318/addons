@@ -480,6 +480,8 @@ def ezville_loop(config):
                                     await update_state(name, 'speed', rid, id, speed)
                                     await update_state(name, 'curMise', rid, id, curMise)
                                     await update_state(name, 'curCo2', rid, id, curCo2)
+                                if STATE_PACKET:
+                                    MSG_CACHE[packet[0:10]] = packet[10:]
 
                             elif name == 'thermostat':
                                 # room 갯수
