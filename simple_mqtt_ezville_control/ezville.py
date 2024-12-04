@@ -14,6 +14,9 @@ RS485_DEVICE = {
 
         'power': {'id': '0E', 'cmd': '41', 'ack': 'C1'}
     },
+    'energy': {
+        'state': {'id': '30', 'cmd': '81'}
+    },
     'thermostat': {
         'state': {'id': '36', 'cmd': '81'},
         'power': {'id': '36', 'cmd': '43', 'ack': 'C3'},
@@ -54,6 +57,22 @@ DISCOVERY_PAYLOAD = {
             'opt': True,
             'stat_t': '~/power/state',
             'cmd_t': '~/power/command'
+        }
+    ],
+    'energy': [
+        {
+            '_intg': 'sensor',
+            '~': 'ezville/energy_{:0>2d}_{:0>2d}',
+            'name': 'ezville_energy_{:0>2d}_{:0>2d}',
+            'stat_t': '~/current/state',
+            'unit_of_meas': 'W'
+        },
+        {
+            '_intg': 'sensor',
+            '~': 'ezville/energy_{:0>2d}_{:0>2d}',
+            'name': 'ezville_energy_{:0>2d}_{:0>2d}',
+            'stat_t': '~/current/state',
+            'unit_of_meas': 'kWh'
         }
     ],
     'thermostat': [
@@ -420,6 +439,26 @@ def ezville_loop(config):
                                     # 직전 처리 State 패킷은 저장
                                     if STATE_PACKET:
                                         MSG_CACHE[packet[0:10]] = packet[10:]
+                            elif name == 'energy' and STATE_PACKET:
+                                if STATE_PACKET:
+                                    rid = 1
+                                    spc = 2
+                                    for i in range(1, spc + 1):
+                                        discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, spc)
+                                        if discovery_name not in DISCOVERY_LIST:
+                                            DISCOVERY_LIST.append(discovery_name)
+
+                                            payload = DISCOVERY_PAYLOAD[name][0].copy()
+                                            payload['~'] = payload['~'].format(rid, spc)
+                                            payload['name'] = payload['name'].format(rid, spc)
+
+                                            # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
+                                            await mqtt_discovery(payload)
+                                            await asyncio.sleep(DISCOVERY_DELAY)
+                                    current = int(packet[10:18])
+                                    total = int(packet[18:26]) / 10
+                                    await update_state(name, 'current', rid, 1, current)
+                                    await update_state(name, 'current', rid, 2, total)
 
                             elif name == 'thermostat':
                                 # room 갯수
