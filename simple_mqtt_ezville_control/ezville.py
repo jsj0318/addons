@@ -24,7 +24,7 @@ RS485_DEVICE = {
         'state': {'id': '61', 'cmd': '81'},
         'power': {'id': '61', 'cmd': '41', 'ack': 'C1'},
         'mode': {'id': '61', 'cmd': '43', 'ack': 'C3'},
-        'speed': {'id': '61', 'cmd': '42', 'ack': 'C2'},
+        'speed': {'id': '61', 'cmd': '42', 'ack': 'C2'}
     },
     'plug': {
         'state': {'id': '39', 'cmd': '81'},
@@ -72,12 +72,6 @@ DISCOVERY_PAYLOAD = {
             'stat_t': '~/power/state',
             'spd_cmd_t': '~/speed/command',
             'spd_stat_t': '~/speed/state',
-            'pl_on': 1,
-            'pl_off': 0,
-            'pl_lo_spd': 2,
-            'pl_med_spd': 3,
-            'pl_hi_spd': 4,
-            'pl_tu_spd': 5,
             'spds': ["off", "low", "medium", "high", "turbo"],
             'curr_mise_t': '~/curMise/state',
             'curr_co2_t': '~/curCo2/state',
