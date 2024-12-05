@@ -97,7 +97,7 @@ DISCOVERY_PAYLOAD = {
             '~': 'ezville/fan_{:0>2d}_{:0>2d}',
             'name': 'ezville_fan_{:0>2d}_{:0>2d}_finedustlevel',
             'stat_t': '~/fdustl/state',
-            'unit_of_meas': '㎥'
+            'unit_of_meas': 'µg/m³'
         },
         {
             '_intg': 'sensor',
