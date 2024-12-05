@@ -87,9 +87,10 @@ DISCOVERY_PAYLOAD = {
             'name': 'ezville_fan_{:0>2d}_{:0>2d}',
             'stat_t': '~/power/state',
             'cmd_t': '~/power/command',
-            'pct_cmd_t': '~/speed/command',
-            'pct_stat_t': '~/speed/state',
-            'speeds': ['low', 'medium', 'high', 'turbo']
+            'preset_mode_command_topic': '~/mode/command',
+            'preset_mode_state_topic': '~/mode/state',
+            'preset_modes': ['low', 'medium', 'high', 'turbo'],
+            'qos': 0
         }
     ],
     'thermostat': [
@@ -493,7 +494,7 @@ def ezville_loop(config):
                                 speed_list = ['low', 'medium', 'high', 'turbo']
                                 speed = speed_list[int(packet[14:16], 16) - 2]
                                 await update_state(name, 'power', rid, slc, onoff)
-                                await update_state(name, 'speed', rid, slc, speed)
+                                await update_state(name, 'mode', rid, slc, speed)
                                 if STATE_PACKET:
                                     MSG_CACHE[packet[0:10]] = packet[10:]
 
@@ -832,7 +833,7 @@ def ezville_loop(config):
                                     sendcmd, recvcmd, statcmd
                                 )
                             )
-                    elif topics[2] == 'speed':
+                    elif topics[2] == 'mode':
                         speed_list = ['low', 'medium', 'high', 'turbo']
                         if value in speed_list:
                             spwd = str(speed_list.index(value) + 2)
