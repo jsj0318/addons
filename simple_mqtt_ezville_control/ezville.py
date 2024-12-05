@@ -99,7 +99,7 @@ DISCOVERY_PAYLOAD = {
             'stat_t': '~/fdustl/state',
             'unit_of_meas': '㎥'
         },
-        {
+        {speed
             '_intg': 'sensor',
             '~': 'ezville/fan_{:0>2d}_{:0>2d}',
             'name': 'ezville_fan_{:0>2d}_{:0>2d}_carbondioxide',
@@ -507,8 +507,8 @@ def ezville_loop(config):
                                 onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
                                 speed_list = ['low', 'medium', 'high', 'turbo']
                                 speed = speed_list[int(packet[14:16], 16) - 2]
-                                dust = str(int(packet[22:26], 16))
-                                co2 = str(int(packet[26:30], 16))
+                                dust = str(int(packet[20:24], 16))
+                                co2 = str(int(packet[24:28], 16))
                                 await update_state(name, 'power', rid, slc, onoff)
                                 await update_state(name, 'mode', rid, slc, speed)
                                 await update_state(name, 'fdustl', rid, slc, dust)
