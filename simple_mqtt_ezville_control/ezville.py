@@ -490,7 +490,10 @@ def ezville_loop(config):
                                         await mqtt_discovery(payload)
                                         await asyncio.sleep(DISCOVERY_DELAY)
                                 onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
+                                speed_list = ['low', 'medium', 'high', 'turbo']
+                                speed = speed_list[int(packet[14:16], 16) - 2]
                                 await update_state(name, 'power', rid, slc, onoff)
+                                await update_state(name, 'speed', rid, slc, speed)
                                 if STATE_PACKET:
                                     MSG_CACHE[packet[0:10]] = packet[10:]
 
