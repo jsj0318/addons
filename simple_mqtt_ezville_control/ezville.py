@@ -507,6 +507,9 @@ def ezville_loop(config):
                                 onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
                                 speed_list = ['low', 'medium', 'high', 'turbo']
                                 speed = speed_list[int(packet[14:16], 16) - 2]
+                                log("Mise Packet: " + str(packet[22:26]) + "," + str(int(packet[22:26], 16)))
+                                log("CO2 Packet: " + str(packet[26:30]) + "," + str(int(packet[26:30], 16)))
+                                log("CO2 Packet: " + str(packet))
                                 dust = str(int(packet[22:26], 16))
                                 co2 = str(int(packet[26:30], 16))
                                 await update_state(name, 'power', rid, slc, onoff)
