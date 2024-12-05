@@ -802,6 +802,12 @@ def ezville_loop(config):
                     log('[DEBUG] fan value: ' + value)
                     pwr = "01" if value == "ON" else "00"
                     log('[DEBUG] fan pwr: ' + pwr)
+                    log('[DEBUG] fan sendpacket: ' + "F7"
+                        + RS485_DEVICE[device]["power"]["id"]
+                        + f"0{idx}"
+                        + RS485_DEVICE[device]["power"]["cmd"]
+                        + "01"
+                        + pwr)
                     sendcmd = checksum(
                         "F7"
                         + RS485_DEVICE[device]["power"]["id"]
