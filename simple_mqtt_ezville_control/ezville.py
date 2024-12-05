@@ -99,7 +99,7 @@ DISCOVERY_PAYLOAD = {
             'stat_t': '~/fdustl/state',
             'unit_of_meas': '㎥'
         },
-        {speed
+        {
             '_intg': 'sensor',
             '~': 'ezville/fan_{:0>2d}_{:0>2d}',
             'name': 'ezville_fan_{:0>2d}_{:0>2d}_carbondioxide',
