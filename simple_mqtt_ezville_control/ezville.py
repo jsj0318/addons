@@ -799,7 +799,9 @@ def ezville_loop(config):
                 #                                if debug:
                 #                                    log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}'.format(sendcmd, recvcmd))
                 elif device == "fan":
+                    log('[DEBUG] fan value: ' + value)
                     pwr = "01" if value == "ON" else "00"
+                    log('[DEBUG] fan pwr: ' + pwr)
                     sendcmd = checksum(
                         "F7"
                         + RS485_DEVICE[device]["power"]["id"]
