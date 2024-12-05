@@ -11,11 +11,14 @@ from queue import Queue
 RS485_DEVICE = {
     'light': {
         'state': {'id': '0E', 'cmd': '81'},
-
         'power': {'id': '0E', 'cmd': '41', 'ack': 'C1'}
     },
     'energy': {
         'state': {'id': '30', 'cmd': '81'}
+    },
+    'fan': {
+        'state': {'id': '61', 'cmd': '81'},
+        'power': {'id': '61', 'cmd': '41', 'ack': 'C1'}
     },
     'thermostat': {
         'state': {'id': '36', 'cmd': '81'},
@@ -33,7 +36,6 @@ RS485_DEVICE = {
     },
     'batch': {
         'state': {'id': '33', 'cmd': '81'},
-
         'press': {'id': '33', 'cmd': '41', 'ack': 'C1'}
     }
 }
@@ -75,6 +77,15 @@ DISCOVERY_PAYLOAD = {
             'stat_t': '~/total/state',
             'unit_of_meas': 'kWh',
             'icon': 'mdi:meter-electric-outline'
+        }
+    ],
+    'fan': [
+        {
+            '_intg': 'fan',
+            '~': 'ezville/fan_{:0>2d}_{:0>2d}',
+            'name': 'ezville_fan_{:0>2d}_{:0>2d}',
+            'stat_t': '~/power/state',
+            'cmd_t': '~/power/command'
         }
     ],
     'thermostat': [
@@ -462,6 +473,23 @@ def ezville_loop(config):
                                     await update_state(name, 'total', rid, spc, total)
                                     MSG_CACHE[packet[0:10]] = packet[10:]
 
+                            elif name == 'fan':
+                                rid = int(packet[5], 16)
+                                slc = 1
+                                discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, slc)
+                                if discovery_name not in DISCOVERY_LIST:
+                                    DISCOVERY_LIST.append(discovery_name)
+                                    for payload_template in DISCOVERY_PAYLOAD[name]:
+                                        payload = payload_template.copy()
+                                        payload['~'] = payload['~'].format(rid, slc)
+                                        payload['name'] = payload['name'].format(rid, slc)
+                                        await mqtt_discovery(payload)
+                                        await asyncio.sleep(DISCOVERY_DELAY)
+                                onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
+                                await update_state(name, 'power', rid, slc, onoff)
+                                if STATE_PACKET:
+                                    MSG_CACHE[packet[0:10]] = packet[10:]
+
                             elif name == 'thermostat':
                                 # room 갯수
                                 rc = int((int(packet[8:10], 16) - 5) / 2)
@@ -770,7 +798,32 @@ def ezville_loop(config):
                 #                                QUEUE.append({'sendcmd': sendcmd, 'recvcmd': recvcmd, 'count': 0})
                 #                                if debug:
                 #                                    log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}'.format(sendcmd, recvcmd))
-
+                elif device == "fan":
+                    pwr = "01" if value == "ON" else "00"
+                    sendcmd = checksum(
+                        "F7"
+                        + RS485_DEVICE[device]["power"]["id"]
+                        + f"0{idx}"
+                        + RS485_DEVICE[device]["power"]["cmd"]
+                        + "01"
+                        + pwr
+                    )
+                    recvcmd = (
+                        "F7"
+                        + RS485_DEVICE[device]["power"]["id"]
+                        + f"0{idx}"
+                        + RS485_DEVICE[device]["power"]["ack"]
+                    )
+                    statcmd = [key, value]
+                    await CMD_QUEUE.put(
+                        {"sendcmd": sendcmd, "recvcmd": recvcmd, "statcmd": statcmd}
+                    )
+                    if debug:
+                        log(
+                            "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
+                                sendcmd, recvcmd, statcmd
+                            )
+                        )
                 elif device == "light":
                     pwr = "01" if value == "ON" else "00"
                     if idx == 1 and sid in [1, 2] and pwr == "01":
