@@ -91,6 +91,20 @@ DISCOVERY_PAYLOAD = {
             'preset_mode_state_topic': '~/mode/state',
             'preset_modes': ['low', 'medium', 'high', 'turbo'],
             'qos': 0
+        },
+        {
+            '_intg': 'sensor',
+            '~': 'ezville/fan_{:0>2d}_{:0>2d}',
+            'name': 'ezville_fan_{:0>2d}_{:0>2d}_finedustlevel',
+            'stat_t': '~/fdustl/state',
+            'unit_of_meas': '㎥'
+        },
+        {
+            '_intg': 'sensor',
+            '~': 'ezville/fan_{:0>2d}_{:0>2d}',
+            'name': 'ezville_fan_{:0>2d}_{:0>2d}_carbondioxide',
+            'stat_t': '~/cdioxide/state',
+            'unit_of_meas': '㎥'
         }
     ],
     'thermostat': [
@@ -493,8 +507,12 @@ def ezville_loop(config):
                                 onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
                                 speed_list = ['low', 'medium', 'high', 'turbo']
                                 speed = speed_list[int(packet[14:16], 16) - 2]
+                                dust = str(int(packet[22:26], 16))
+                                co2 = str(int(packet[26:30], 16))
                                 await update_state(name, 'power', rid, slc, onoff)
                                 await update_state(name, 'mode', rid, slc, speed)
+                                await update_state(name, 'fdustl', rid, slc, dust)
+                                await update_state(name, 'cdioxide', rid, slc, co2)
                                 if STATE_PACKET:
                                     MSG_CACHE[packet[0:10]] = packet[10:]
 
