@@ -18,7 +18,8 @@ RS485_DEVICE = {
     },
     'fan': {
         'state': {'id': '61', 'cmd': '81'},
-        'power': {'id': '61', 'cmd': '41', 'ack': 'C1'}
+        'power': {'id': '61', 'cmd': '41', 'ack': 'C1'},
+        'speed': {'id': '61', 'cmd': '42', 'ack': 'C2'}
     },
     'thermostat': {
         'state': {'id': '36', 'cmd': '81'},
@@ -85,7 +86,10 @@ DISCOVERY_PAYLOAD = {
             '~': 'ezville/fan_{:0>2d}_{:0>2d}',
             'name': 'ezville_fan_{:0>2d}_{:0>2d}',
             'stat_t': '~/power/state',
-            'cmd_t': '~/power/command'
+            'cmd_t': '~/power/command',
+            'pct_cmd_t': '~/speed/command',
+            'pct_stat_t': '~/speed/state',
+            'speeds': ['low', 'medium', 'high', 'turbo']
         }
     ],
     'thermostat': [
@@ -799,31 +803,61 @@ def ezville_loop(config):
                 #                                if debug:
                 #                                    log('[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}'.format(sendcmd, recvcmd))
                 elif device == "fan":
-                    pwr = "01" if value == "ON" else "00"
-                    sendcmd = checksum(
-                        "F7"
-                        + RS485_DEVICE[device]["power"]["id"]
-                        + f"0{idx}"
-                        + RS485_DEVICE[device]["power"]["cmd"]
-                        + "01"
-                        + pwr + "0000"
-                    )
-                    recvcmd = (
-                        "F7"
-                        + RS485_DEVICE[device]["power"]["id"]
-                        + f"0{idx}"
-                        + RS485_DEVICE[device]["power"]["ack"]
-                    )
-                    statcmd = [key, value]
-                    await CMD_QUEUE.put(
-                        {"sendcmd": sendcmd, "recvcmd": recvcmd, "statcmd": statcmd}
-                    )
-                    if debug:
-                        log(
-                            "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
-                                sendcmd, recvcmd, statcmd
-                            )
+                    if topics[2] == 'power':
+                        pwr = "01" if value == "ON" else "00"
+                        sendcmd = checksum(
+                            "F7"
+                            + RS485_DEVICE[device]["power"]["id"]
+                            + f"0{idx}"
+                            + RS485_DEVICE[device]["power"]["cmd"]
+                            + "01"
+                            + pwr + "0000"
                         )
+                        recvcmd = (
+                            "F7"
+                            + RS485_DEVICE[device]["power"]["id"]
+                            + f"0{idx}"
+                            + RS485_DEVICE[device]["power"]["ack"]
+                        )
+                        statcmd = [key, value]
+                        await CMD_QUEUE.put(
+                            {"sendcmd": sendcmd, "recvcmd": recvcmd, "statcmd": statcmd}
+                        )
+                        if debug:
+                            log(
+                                "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
+                                    sendcmd, recvcmd, statcmd
+                                )
+                            )
+                    elif topics[2] == 'speed':
+                        speed_list = ['low', 'medium', 'high', 'turbo']
+                        if value in speed_list:
+                            spwd = str(speed_list.index(value) + 2)
+                            sendcmd = checksum(
+                                "F7"
+                                + RS485_DEVICE[device]["speed"]["id"]
+                                + f"0{idx}"
+                                + RS485_DEVICE[device]["speed"]["cmd"]
+                                + "01"
+                                + f"0{spwd}" + "0000"
+                            )
+                            recvcmd = (
+                                "F7"
+                                + RS485_DEVICE[device]["speed"]["id"]
+                                + f"0{idx}"
+                                + RS485_DEVICE[device]["speed"]["ack"]
+                            )
+                            statcmd = [key, value]
+                            await CMD_QUEUE.put(
+                                {"sendcmd": sendcmd, "recvcmd": recvcmd, "statcmd": statcmd}
+                            )
+                            if debug:
+                                log(
+                                    "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
+                                        sendcmd, recvcmd, statcmd
+                                    )
+                                )
+
                 elif device == "light":
                     pwr = "01" if value == "ON" else "00"
                     if idx == 1 and sid in [1, 2] and pwr == "01":
