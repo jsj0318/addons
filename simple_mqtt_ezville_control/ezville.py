@@ -104,7 +104,7 @@ DISCOVERY_PAYLOAD = {
             '~': 'ezville/fan_{:0>2d}_{:0>2d}',
             'name': 'ezville_fan_{:0>2d}_{:0>2d}_carbondioxide',
             'stat_t': '~/cdioxide/state',
-            'unit_of_meas': '㎥'
+            'unit_of_meas': 'ppm'
         }
     ],
     'thermostat': [
