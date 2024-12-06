@@ -842,7 +842,7 @@ def ezville_loop(config):
                                 id = RS485_DEVICE[device]["speed"]["id"]
                                 cmd = RS485_DEVICE[device]["speed"]["cmd"]
                                 ack = RS485_DEVICE[device]["speed"]["ack"]
-                                pwr_c = "02"
+                                pwr_c = "01"
                             else:
                                 id = RS485_DEVICE[device]["vent"]["id"]
                                 cmd = RS485_DEVICE[device]["vent"]["cmd"]
