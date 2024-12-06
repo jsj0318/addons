@@ -90,7 +90,7 @@ DISCOVERY_PAYLOAD = {
             'cmd_t': '~/power/command',
             'preset_mode_command_topic': '~/mode/command',
             'preset_mode_state_topic': '~/mode/state',
-            'preset_modes': ['low', 'medium', 'high', 'turbo'],
+            'preset_modes': ['auto', 'low', 'medium', 'high', 'turbo'],
             'qos': 0
         },
         {
@@ -506,8 +506,8 @@ def ezville_loop(config):
                                         await mqtt_discovery(payload)
                                         await asyncio.sleep(DISCOVERY_DELAY)
                                 onoff = 'ON' if int(packet[12:14], 16) & 1 else 'OFF'
-                                speed_list = ['low', 'medium', 'high', 'turbo']
-                                speed = speed_list[int(packet[14:16], 16) - 2]
+                                speed_list = ['auto', 'low', 'medium', 'high', 'turbo']
+                                speed = speed_list[int(packet[14:16], 16) - 1]
                                 dust = str(int(packet[20:24], 16))
                                 co2 = str(int(packet[24:28], 16))
                                 await update_state(name, 'power', rid, slc, onoff)
@@ -873,9 +873,9 @@ def ezville_loop(config):
                                     )
                                 )
                     elif topics[2] == 'mode':
-                        speed_list = ['low', 'medium', 'high', 'turbo']
+                        speed_list = ['auto', 'low', 'medium', 'high', 'turbo']
                         if value in speed_list:
-                            spwd = str(speed_list.index(value) + 2)
+                            spwd = str(speed_list.index(value) + 1)
                             sendcmd = checksum(
                                 "F7"
                                 + RS485_DEVICE[device]["speed"]["id"]
