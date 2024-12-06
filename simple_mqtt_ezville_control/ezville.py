@@ -866,12 +866,12 @@ def ezville_loop(config):
                             await CMD_QUEUE.put(
                                 {"sendcmd": sendcmd, "recvcmd": recvcmd, "statcmd": statcmd}
                             )
-                        if debug:
-                            log(
-                                "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
-                                    sendcmd, recvcmd, statcmd
+                            if debug:
+                                log(
+                                    "[DEBUG] Queued ::: sendcmd: {}, recvcmd: {}, statcmd: {}".format(
+                                        sendcmd, recvcmd, statcmd
+                                    )
                                 )
-                            )
                     elif topics[2] == 'mode':
                         speed_list = ['low', 'medium', 'high', 'turbo']
                         if value in speed_list:
