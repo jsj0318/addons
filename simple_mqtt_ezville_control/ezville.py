@@ -858,9 +858,9 @@ def ezville_loop(config):
                             )
                             recvcmd = (
                                 "F7"
-                                + RS485_DEVICE[device]["power"]["id"]
+                                + id
                                 + f"0{idx}"
-                                + RS485_DEVICE[device]["power"]["ack"]
+                                + ack
                             )
                             statcmd = [key, value]
                             await CMD_QUEUE.put(
