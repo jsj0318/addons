@@ -474,6 +474,7 @@ def ezville_loop(config):
                                         MSG_CACHE[packet[0:10]] = packet[10:]
                             elif name == 'energy' and STATE_PACKET:
                                 if STATE_PACKET:
+                                    log(">>>>>>>>>>>>>>>>>>>>>>>> " + str(packet[4:6]))
                                     rid = int(packet[4:6], 16)
                                     spc = 1
                                     discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, spc)
@@ -482,7 +483,7 @@ def ezville_loop(config):
                                         for payload_template in DISCOVERY_PAYLOAD[name]:
                                             payload = payload_template.copy()
                                             payload['~'] = payload['~'].format(rid, spc)
-                                            payload['name'] = payload['name'].format(rid, spc)
+                                            payload['name'] = payload['name'].format(rid, ("power", "water", "gas")[rid])
                                             payload["unit_of_meas"] = ("W", "m³/h", "m³/h")[rid]
 
                                             # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
