@@ -474,8 +474,7 @@ def ezville_loop(config):
                                         MSG_CACHE[packet[0:10]] = packet[10:]
                             elif name == 'energy' and STATE_PACKET:
                                 if STATE_PACKET:
-                                    log(">>>>>>>>>>>>>>>>>>>>>>>> " + str(packet[4:6]))
-                                    rid = int(packet[4:6], 16)
+                                    rid = 1
                                     spc = 1
                                     discovery_name = '{}_{:0>2d}_{:0>2d}'.format(name, rid, spc)
                                     if discovery_name not in DISCOVERY_LIST:
@@ -483,18 +482,13 @@ def ezville_loop(config):
                                         for payload_template in DISCOVERY_PAYLOAD[name]:
                                             payload = payload_template.copy()
                                             payload['~'] = payload['~'].format(rid, spc)
-                                            payload['name'] = payload['name'].format(rid, ("power", "water", "gas")[rid])
-                                            payload["unit_of_meas"] = ("W", "m³/h", "m³/h")[rid]
+                                            payload['name'] = payload['name'].format(rid, spc)
 
                                             # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
                                             await mqtt_discovery(payload)
                                             await asyncio.sleep(DISCOVERY_DELAY)
-                                    if rid == 0:
-                                        current = str(int(packet[10:18]))
-                                        total = str(int(packet[18:26]) / 10)
-                                    else:
-                                        current = str(float(int(packet[10:18]) / 1000))
-                                        total = str(float(int(packet[18:26]) / 100))
+                                    current = str(int(packet[10:18]))
+                                    total = str(int(packet[18:26]) / 10)
                                     await update_state(name, 'current', rid, spc, current)
                                     await update_state(name, 'total', rid, spc, total)
                                     MSG_CACHE[packet[0:10]] = packet[10:]
