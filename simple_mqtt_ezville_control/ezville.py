@@ -482,7 +482,7 @@ def ezville_loop(config):
                                         for payload_template in DISCOVERY_PAYLOAD[name]:
                                             payload = payload_template.copy()
                                             payload['~'] = payload['~'].format(rid, spc)
-                                            payload['name'] = payload['name'].format(rid, ("power", "gas", "water")[rid])
+                                            payload['name'] = payload['name'].format(rid, spc)
                                             payload["unit_of_meas"] = ("W", "m³/h", "m³/h")[rid]
 
                                             # 장치 등록 후 DISCOVERY_DELAY초 후에 State 업데이트
