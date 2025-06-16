@@ -488,7 +488,7 @@ def ezville_loop(config):
                                             await mqtt_discovery(payload)
                                             await asyncio.sleep(DISCOVERY_DELAY)
                                     current = str(int(packet[10:18]))
-                                    total = str(int(packet[18:26]) / 10)
+                                    total = str(int(packet[18:26]) / 10000)
                                     await update_state(name, 'current', rid, spc, current)
                                     await update_state(name, 'total', rid, spc, total)
                                     MSG_CACHE[packet[0:10]] = packet[10:]
